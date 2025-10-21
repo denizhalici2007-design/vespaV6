@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Book — Vespa</title>
+<link href="assets/style.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div></div>
+<header class="nav"><div class="nav__inner">
+<a class="brand" href="index.html">vespa</a>
+<nav class="nav__links">
+<a data-i18n="nav_home" href="index.html">Home</a>
+<a data-i18n="nav_tours" href="tours.html">Tours</a><a data-i18n="nav_gallery" href="gallery.html">Gallery</a>
+<a class="pill" data-i18n="nav_book" href="booking.html">Book</a>
+<button class="lang" id="langEn">EN</button><button class="lang" id="langIt">IT</button><button aria-label="Toggle theme" id="themeToggle"><span class="icon">🌙</span></button>
+</nav></div>
+</header>
+<section class="section reveal">
+<h2 data-i18n="book_title" style="margin:0 0 10px">Book Your Vespa Tour</h2>
+<p data-i18n="book_hint" style="opacity:.85">Pick a date, add details, then pay (demo).</p>
+<div class="card">
+<form class="form" onsubmit="return false;">
+<div class="row">
+<div class="field"><label>Pick a Date</label><input name="tour-date" required="" type="date"/></div>
+<div class="field"><label>Pick a Time</label><input name="tour-time" required="" type="time"/></div>
+</div>
+<div class="row">
+<div class="field"><label>Full Name</label><input name="name" placeholder="Your full name" required="" type="text"/></div>
+<div class="field"><label>Email</label><input name="email" placeholder="you@example.com" required="" type="email"/></div>
+</div>
+<div class="row">
+<div class="field"><label>Tour</label>
+<select name="tour" required="">
+<option data-i18n="opt_90" value="dur-90">90 minute — €30</option>
+<option data-i18n="opt_180" value="dur-180">180 minute — €60</option>
+</select>
+</div>
+<div class="field"><label>Participants</label><input min="1" name="people" required="" type="number" value="1"/></div>
+</div>
+<div class="row" id="totalRow">
+<div class="field">
+<label>Total</label>
+<div class="price-display" id="totalPrice">€0</div>
+</div>
+</div>
+<div class="row" style="gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))">
+<button class="btn" data-i18n="pay_stripe" onclick="payDemo()" type="button">Pay (Demo)</button>
+<button class="btn" data-i18n="pay_paypal" onclick="payDemo()" type="button">Pay (Demo)</button>
+</div>
+</form>
+</div>
+</section>
+<footer class="foot"><div>© 2025 Vespa Tours</div>
+<nav><a data-i18n="nav_home" href="index.html">Home</a><a data-i18n="nav_tours" href="tours.html">Tours</a><a data-i18n="nav_book" href="booking.html">Book</a><a data-i18n="nav_gallery" href="gallery.html">Gallery</a></nav>
+</footer>
+<script src="assets/main.js"></script>
+<script>
+    function getUnitPrice(val){
+      return (val==='dur-180') ? 60 : 30;
+    }
+    function updatePrice(){
+      var sel = document.querySelector('select[name="tour"]');
+      var peopleEl = document.querySelector('input[name="people"]');
+      var totalEl = document.getElementById('totalPrice');
+      if(!sel || !peopleEl || !totalEl) return;
+      var unit = getUnitPrice(sel.value);
+      var people = Math.max(1, Number(peopleEl.value||1));
+      var total = unit * people;
+      totalEl.textContent = total.toLocaleString(undefined,{style:'currency',currency:'EUR'});
+      return total;
+    }
+    // Hook events for live updates
+    document.addEventListener('DOMContentLoaded', function(){
+      window.onLangChange = function(){ updatePrice(); };
+      document.querySelector('select[name="tour"]')?.addEventListener('change', updatePrice);
+      document.querySelector('input[name="people"]')?.addEventListener('input', updatePrice);
+      updatePrice();
+    });
+
+    function collect(){
+      const fd = new FormData(document.querySelector('form.form'));
+      const b = Object.fromEntries(fd.entries());
+      b.people = Number(b.people||1);
+      b.total = (b.tour==='dur-180' ? 60 : 30) * b.people;
+      // also capture the label text for display
+      const sel = document.querySelector('select[name="tour"]');
+      b.tourLabel = sel ? sel.options[sel.selectedIndex].textContent.trim() : b.tour;
+      return b;
+    }
+    function payDemo(){
+      const b = collect();
+      if(!b['tour-date']||!b['tour-time']||!b.name||!b.email){ alert('Please complete the form'); return; }
+      window.VESPA_STORE.saveBooking({ name:b.name, email:b.email, tour:b.tourLabel, date:b['tour-date'], time:b['tour-time'], people:b.people, total:b.total });
+      location.href='payment.html';
+    }
+  </script>
+</body></html>

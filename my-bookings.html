@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>My Bookings — Vespa</title>
+<link href="assets/style.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div></div>
+<header class="nav"><div class="nav__inner">
+<a class="brand" href="index.html">vespa</a>
+<nav class="nav__links">
+<a data-i18n="nav_home" href="index.html">Home</a>
+<a data-i18n="nav_tours" href="tours.html">Tours</a><a data-i18n="nav_gallery" href="gallery.html">Gallery</a>
+<a data-i18n="nav_book" href="booking.html">Book</a>
+<button class="lang" id="langEn">EN</button><button class="lang" id="langIt">IT</button><button aria-label="Toggle theme" id="themeToggle"><span class="icon">🌙</span></button>
+</nav></div>
+</header>
+<section class="section reveal">
+<h2 data-i18n="my_title">My Bookings</h2>
+<p data-i18n="my_note">Your device-stored bookings are shown below.</p>
+<div id="content"></div>
+</section>
+<footer class="foot"><div>© 2025 Vespa Tours</div>
+<nav><a data-i18n="nav_home" href="index.html">Home</a><a data-i18n="nav_tours" href="tours.html">Tours</a><a data-i18n="nav_book" href="booking.html">Book</a><a data-i18n="nav_gallery" href="gallery.html">Gallery</a></nav>
+</footer>
+<script src="assets/main.js"></script>
+<script>
+    function t(key, fallback){ try{ const lang=localStorage.getItem('lang')||'en'; const d=(window.__DICT||{}); return (d[lang]&&d[lang][key])||fallback; }catch(e){ return fallback; } }
+    function currency(v){ return (Number(v)||0).toLocaleString(undefined,{style:'currency',currency:'EUR'}); }
+
+    function render(){
+      const el = document.getElementById('content');
+      const arr = window.VESPA_STORE.getBookings();
+      if(!arr.length){ el.innerHTML='<p>'+ (t('my_empty','No bookings yet.')) +'</p>'; return; }
+      let html='<table class="table"><thead><tr><th>'+t('th_date','Date')+'</th><th>'+t('th_time','Time')+'</th><th>'+t('th_tour','Tour')+'</th><th>'+t('th_people','People')+'</th><th>'+t('th_total','Total')+'</th><th>'+t('th_actions','Actions')+'</th></tr></thead><tbody>';
+      for(const b of arr){
+        const id = b.createdAt;
+        html += `<tr data-id="${id}">
+          <td>${b.date||''}</td>
+          <td>${b.time||''}</td>
+          <td>${b.tour||b.package||''}</td>
+          <td>${b.people||b.guests||1}</td>
+          <td>${currency(b.total||b.price||0)}</td>
+          <td><button class="btn small cancel" data-id="${id}">`+t('btn_cancel','Cancel')+`</button></td>
+        </tr>`;
+      }
+      html+='</tbody></table>';
+      el.innerHTML=html;
+    }
+
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button.cancel');
+      if(btn){
+        const id = btn.getAttribute('data-id');
+        if(confirm(t('cfm_cancel','Cancel this booking?'))){
+          window.VESPA_STORE.cancelBooking(id);
+          render();
+        }
+      }
+      if(e.target.id==='cancelAll'){
+        const arr = window.VESPA_STORE.getBookings();
+        if(!arr.length) return;
+        if(confirm(t('cfm_cancel_all','Cancel ALL bookings?'))){
+          window.VESPA_STORE.clearBookings();
+          render();
+        }
+      }
+    });
+
+    render();
+  </script>
+</body></html>
