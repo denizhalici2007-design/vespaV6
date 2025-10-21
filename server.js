@@ -8,10 +8,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 5173;
 
-// Serve static files from dist folder
+// build edilen statik dosyaları sun
 app.use(express.static(path.join(__dirname, "dist")));
 
-// Handle SPA routing
+// Tüm istekleri index.html'e yönlendir (SPA routing)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
