@@ -8,14 +8,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 5173;
 
-// build edilen statik dosyaları sun
-app.use(express.static(path.join(__dirname, "dist")));
+// STATIC FILES
+app.use(express.static(path.resolve(__dirname, "dist"), {
+  extensions: ["html", "htm"],
+}));
 
-// Tüm istekleri index.html'e yönlendir (SPA routing)
+// SPA fallback
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  res.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`✅ Server running on port ${port}`);
-});
+app.listen(port, () => console.log(`✅ Server running on port ${port}`));
